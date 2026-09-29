@@ -44,7 +44,7 @@ The last command serves the production export with a local-only QA harness at ht
 - Reset position: return to Lovett Hall, keeping owl progress
 - Portfolio and Contact are always available
 
-Three optional owls are the only mini-game. YardOS is a fictional drone concept exhibit, not a drone-control mini-game or a launched product.
+Three optional activities accompany the owl hunt: YardOS scan comparison at Brochstein, RiceWalk morning planner at engineering, and Campus memory lab at Fondren. Each has fictional sample data, feedback, replay, and a Stop control; all are also available at `/portfolio`. YardOS remains fictional. OwlRecruit and OwlDB were not represented as existing projects because no implementation details or verified links for them were present.
 
 ## Content & geography
 

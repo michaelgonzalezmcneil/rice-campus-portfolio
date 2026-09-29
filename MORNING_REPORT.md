@@ -13,7 +13,7 @@ Private repository (initial release pushed to `main`): https://github.com/michae
 - Opening screen, angled orthographic camera, screen-relative WASD/arrows, touch joystick, interaction button, collisions, camera tracking, reset, live minimap, accessible native dialogs, Escape dismissal, movement pause while reading, reduced-motion support.
 - Lovett Hall/Sallyport, Academic Quadrangle, Fondren, Brochstein Pavilion, Duncan Hall, O’Connor engineering silhouette, and a compressed north-college walk to Duncan College. Architectural vocabulary includes arches, campanile, library arcade, pavilion trellis, engineering columns, and college courtyard.
 - Five portfolio stops and three optional owl collectibles, completion panel, replay, and guarded local progress storage.
-- Clearly fictional YardOS drone exhibit. It is the only drone content; no separate drone mini-game is included.
+- Clearly fictional YardOS drone exhibit, now including an optional scan-comparison game. No drone flight-control mini-game is included.
 - Rendering failure/context-loss fallback and a direct portfolio alternative available during loading.
 - Static boxes and trees use instanced meshes. 3D code loads separately from the plain portfolio. Pixel ratio is capped at 1.5; a single 1024px shadow map is used.
 
@@ -153,3 +153,32 @@ All additions are original procedural geometry. Reference photographs are not bu
 ### Limits
 
 The fade is a small dithered cutaway, not whole-building transparency. Audio playback state and controls were tested; acoustic quality through physical speakers/headphones was not assessed. Touch testing used browser pointer input and viewport overrides, not physical mobile hardware. Blur and visibility recovery were exercised with lifecycle events; native mobile app-switching remains untested. Footsteps use original synthesized tones with no attribution requirement. Preview commands and campus source credits above remain applicable.
+
+
+## Optional project activities — September 29, 2026
+
+Implemented and browser-tested sequentially: YardOS first, then RiceWalk, then Campus memory lab.
+
+### Content grounding
+
+The existing portfolio contains YardOS (explicitly fictional), RiceWalk, and this campus implementation. No OwlRecruit or OwlDB implementation details, achievements, or verified URLs were found. A request for factual details was left open while YardOS was built; none arrived during implementation. The two supported alternatives below were used rather than representing unverified projects as completed personal work.
+
+- **YardOS scan comparison — Brochstein:** compare illustrated before/after grids and mark the moved Cart and Cone. Feedback explains stable identity and location comparison. All imagery, locations, and detections are prominently labeled game demo data; no vision model or production drone system is claimed.
+- **RiceWalk morning planner — engineering:** add/remove stops, order Coffee before Library, and fit a fictional 10-minute budget. Demonstrates ordered data and constraint validation. Existing route/day-preview content and its local `/` link are retained; no production optimizer or real travel times are claimed.
+- **Campus memory lab — Fondren:** select a unique key, store a fictional owl, then retrieve the correct record when names repeat. Demonstrates identity and lookup using a local JavaScript object. The explanation is grounded in this campus game’s landmark and collectible IDs and guarded local progress storage; it does not claim a separate database product.
+
+Each starts only on request, has Replay and Stop controls, supports standard buttons with Enter/Space and pointer input, announces feedback, and works in the conventional portfolio as well as the campus dialog. No activity completion is required to navigate, read projects, or contact Michael. Replay and closing reset activity state; activity data is session-local React state, with no backend or applicant/personal data.
+
+### Verified
+
+- YardOS: empty/wrong-answer feedback, correct two-asset comparison, Enter/Space completion, replay clears selections/status, 390px layout, completion in the campus panel, Escape dismissal.
+- RiceWalk: missing stops, wrong order, over-budget detour, remove/re-add corrections, correct completion, replay resets budget, keyboard choices, 390px campus-panel completion, Escape dismissal.
+- Memory lab: duplicate display-name rejection, storing without overwriting the other Pip, missing-key lookup, wrong-record lookup, correct retrieval, keyboard choices, replay removes the new record, Stop collapses the activity, 390px campus-panel completion.
+- Campus movement stayed at `(20,10)` when movement input was sent while an activity was open. The full portfolio still exposes the activities without entering the game.
+- Screenshots saved as `release/screenshots/activity-*.png`; detailed browser results in `release/activity-results.md`.
+- Final production build generated 103 static pages; standalone typecheck and all 7 existing game tests passed. No console errors were observed in the portfolio or campus activity browser sessions.
+- The activities target roughly 20–40 seconds including reading; no countdown is imposed and no human timing study was performed.
+
+### Assets and limitations
+
+All new yard illustrations are original HTML/CSS grids with text symbols; no external images, applicant records, AI detections, or audio were added. Existing campus/reference credits remain applicable. Desktop keyboard and browser pointer input at narrow viewports were tested; no physical phone or screen-reader testing is claimed. OwlRecruit/OwlDB remain absent pending verified project content. No external project URL was invented.
