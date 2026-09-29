@@ -16,10 +16,19 @@ export const owls: Point[] = [{ x: 8, z: 21 }, { x: -32, z: -1 }, { x: 32, z: -3
 export const trees: Point[] = [
   ...[-36,-26,-16,-6,4,14,24,34,44].map(x=>({x,z:27})),
   ...[-38,-29,-20,0,10].map(x=>({x,z:-5})),
-  ...[-50,-40,-30,-20,-10,0,10,20].map(z=>({x:45,z})),
+  ...[-50,-40,-30,-20,-10,0,10,20].map(z=>({x:z===-50?47:45,z})),
   ...[-50,-40,-30,-20,0,20].map(z=>({x:-41,z})),
-  {x:3,z:18},{x:13,z:18},{x:3,z:2},{x:13,z:2},{x:30,z:-46},{x:28,z:-25},
+  {x:3,z:18},{x:13,z:18},{x:23,z:18},{x:3,z:2},{x:13,z:2},{x:23,z:2},{x:33,z:-51},{x:28,z:-25},
 ];
+// Furnishings are set back from paths; their footprints also drive collisions.
+export const benches = [
+ {x:3,z:6.3,rotation:Math.PI},{x:13,z:6.3,rotation:Math.PI},
+ {x:3,z:13.7,rotation:0},{x:13,z:13.7,rotation:0},
+ {x:-3,z:4,rotation:Math.PI/2},{x:-3,z:16,rotation:Math.PI/2},
+ {x:33,z:-46,rotation:-Math.PI/2},{x:41,z:-46,rotation:Math.PI/2},
+];
+export const lamps:Point[]=[{x:0,z:5.5},{x:20,z:5.5},{x:0,z:14.5},{x:20,z:14.5},{x:33,z:-12},{x:33,z:-25},{x:34,z:-37}];
+export const cafeTables:Point[]=[{x:-35,z:16},{x:-25,z:16},{x:-35,z:4.6},{x:-25,z:4.6}];
 export const buildings: (Obstacle & { kind: string; name: string })[] = [
   { kind:'lovett',name:'Lovett Hall',x:28,z:10,w:5,d:26 },
   { kind:'fondren',name:'Fondren Library',x:-12,z:10,w:10,d:24 },
@@ -37,6 +46,10 @@ export const obstacles: Obstacle[] = [
   { x:28,z:1.75,w:5,d:9.5 }, { x:28,z:18.25,w:5,d:9.5 },
   { x:30,z:-49,w:2,d:14 },{ x:44,z:-49,w:2,d:14 },{x:37,z:-55,w:16,d:2},
   ...trees.map(t=>({...t,w:1.3,d:1.3})),
+  ...benches.map(b=>({x:b.x,z:b.z,w:Math.abs(Math.cos(b.rotation))> .5?2:.8,d:Math.abs(Math.cos(b.rotation))>.5?.8:2})),
+  ...lamps.map(p=>({...p,w:.4,d:.4})),
+  ...cafeTables.map(p=>({...p,w:2.6,d:1.1})),
+  {x:-36,z:2.8,w:1.1,d:2},{x:-24,z:2.8,w:1.1,d:2},
   {x:-30,z:2.8,w:10,d:1.2},
 ];
 export function blocked(x:number,z:number) {

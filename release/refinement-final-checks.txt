@@ -1,0 +1,5 @@
+Final build: 103 static pages; TypeScript passed.
+5/5 collision and reachability tests passed.
+Final Duncan walk reached 36.98,-39.68; exhibit opened and Escape closed it.
+Final starting scene: 60 fps, 61 calls, 56,650 triangles; rolling 120-frame sample, 1280x720.
+No console errors observed. Mobile 390x844 screenshot inspected.

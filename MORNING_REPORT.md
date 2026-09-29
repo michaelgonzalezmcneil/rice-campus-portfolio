@@ -98,3 +98,32 @@ npm run preview
 Open http://127.0.0.1:3021/campus. To use another port: `PORT=3025 npm run preview`.
 
 Node.js 24 recommended. No backend/login/API keys required. `npm run test:browser` exposes a localhost-only QA harness at `/__qa`; the QA harness is not shipped in `out/`.
+
+
+## Architectural refinement — September 29, 2026
+
+### Implemented
+
+- Rebuilt Lovett’s silhouette around the raised central Sallyport facade, concentric stone arch, paired upper arcades, cream masonry bands, small parapet pinnacles, and terracotta wing roofs. Removed the earlier generic off-center tower.
+- Reworked Fondren’s stepped brick mass, three tall central window bays, stone cornices, and recessed seven-bay arcade.
+- Brochstein now has a two-direction white trellis, slender glazing mullions, roof lights, terrace tables/chairs, planting edges, and a narrow water surface in the existing fountain footprint.
+- Duncan College has repeated paired window bays, exposed trim, a shaded courtyard edge, pitched roof details, and a clear central courtyard walk. It remains a compressed abstraction of the north-college architecture.
+- Broad, clustered oak canopies replace pointed single crowns. Quad-edge tree rows, benches facing lawns, lamps beside paths, and facade name plaques give the campus more deliberate detail. No decoration is randomly placed.
+- Relative positions were checked again against the Rice-hosted printable map: Lovett and Fondren face each other across the Academic Quad; Brochstein is beyond Fondren; Duncan College sits beyond Duncan Hall in the north-college area. Building footprints and exhibit coordinates are retained. Furniture footprints participate in collisions; roofs and masonry details stay above or within existing building footprints.
+
+### Verification
+
+- Production build passed with 103 static pages and TypeScript validation; standalone typecheck and all 5 collision/reachability tests passed.
+- Browser views inspected at Lovett, Fondren, Brochstein, and Duncan; a 390×844 mobile view was also inspected. Before/after and landmark screenshots are saved under `release/screenshots/refinement-*.png`. No console errors were observed in the refined preview.
+- Full input-driven journey passed: all five exhibit approaches, open/pause/close, all three owls, completion, reload persistence, reset, and replay (`release/refinement-journey-results.txt`). Visual inspection then found two oaks intersecting Duncan’s wings; these were moved and the rear courtyard facade completed. The final build and all 5 tests passed again; the Duncan walk, exhibit opening, and Escape closing were retested successfully.
+- At the starting view in the in-app Chromium browser (1280×720, all owls present), one rolling 120-frame sample measured **60 fps, 61 draw calls, 56,650 triangles**. This is an observation, not a cross-device benchmark. More detailed arches use the existing shared box instance buffer; trunks, branches, and canopy clusters each use instanced geometry. The existing pixel-ratio cap and single 1024px shadow map remain.
+
+### Additional reference inspection and credits
+
+- Rice official map index: https://www.rice.edu/campus-maps and the previously listed Rice-hosted printable map (rendered and inspected again). The user’s attached campus illustrations were also used for spatial and art-direction context.
+- Lovett’s central facade, Sallyport, masonry, and arcades: official Rice photograph, visually inspected: https://graduate.rice.edu/sites/g/files/bxs3106/files/2024-12/rice-university-210464_1280.jpg
+- Fondren’s brick mass and stone arcade: the Rice News exterior photo listed above, visually inspected again. Official placement confirmation: https://www.library.rice.edu/content/getting-fondren-library
+- Brochstein’s trellis and roof lights: architect’s photograph, visually inspected: https://www.thomasphifer.com/uploads/project-images/RB-SF-01.jpg . Official west-of-Fondren placement: https://news2.rice.edu/2007/09/05/new-pavilion-to-carry-brochstein-name/
+- North-college materials, courtyard edge, and modular windows: https://www.hopkins.co.uk/projects/education/rice-university/ and its photograph https://www.hopkins.co.uk/assets/uploads/rice-n358.jpg (visually inspected).
+
+All additions are original procedural geometry. Reference photographs are not bundled; their copyright remains with the respective owners. The models intentionally simplify exact bay counts, interior spaces, and landscape geometry; this is still a stylized campus rather than an architectural survey.

@@ -1,0 +1,22 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+Reached 20,10: 20,10
+PASS exhibit / pause / close: Lovett Hall
+Reached 20,-8: 20.05,-7.72
+PASS exhibit / pause / close: Duncan Hall
+Reached 37,-40: 36.96,-39.65
+PASS exhibit / pause / close: Duncan College
+Reached -3,10: -2.87,9.64
+PASS exhibit / pause / close: Fondren Library
+Reached -30,18: -29.67,17.96
+PASS exhibit / pause / close: Brochstein Pavilion
+Reached 8,21: 7.98,20.65
+Reached -32,-1: -31.74,-1.11
+Reached final owl: completion pauses movement
+PASS all three owls and completion
+PASS reload persistence
+PASS reset
+Reached 8,21: 8.09,20.71
+Reached -32,-1: -32.01,-1.29
+Reached final owl: completion pauses movement
+PASS restart clears owls and storage, restores spawn
+PASS test finished
