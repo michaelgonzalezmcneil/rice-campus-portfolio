@@ -1,0 +1,4 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+Reached 8,21: 8.59,20.79
+PASS denied storage: start, walk, collect, read/write recovery
+PASS test finished

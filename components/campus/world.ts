@@ -1,0 +1,52 @@
+/** Campus axes follow the printable Rice map: +x toward Main Street, -z toward Rice Blvd.
+ * Distances are deliberately compressed; this is not a navigation map. */
+export type Point = { x: number; z: number };
+export type Obstacle = Point & { w: number; d: number };
+export const START: Point = { x: 20, z: 10 };
+export const bounds = { left: -45, right: 49, top: -59, bottom: 31 };
+export const exhibits = [
+  { id: 'welcome', name: 'Lovett Hall', topic: 'Welcome', x: 20, z: 10, number: '01' },
+  { id: 'engineering', name: 'Duncan Hall', topic: 'Projects & experience', x: 20, z: -8, number: '02' },
+  { id: 'library', name: 'Fondren Library', topic: 'Education & skills', x: -3, z: 10, number: '03' },
+  { id: 'yardos', name: 'Brochstein Pavilion', topic: 'YardOS · fictional concept', x: -30, z: 18, number: '04' },
+  { id: 'duncan', name: 'Duncan College', topic: 'College community', x: 37, z: -40, number: '05' },
+] as const;
+export type ExhibitId = typeof exhibits[number]['id'];
+export const owls: Point[] = [{ x: 8, z: 21 }, { x: -32, z: -1 }, { x: 32, z: -30 }];
+export const trees: Point[] = [
+  ...[-36,-26,-16,-6,4,14,24,34,44].map(x=>({x,z:27})),
+  ...[-38,-29,-20,0,10].map(x=>({x,z:-5})),
+  ...[-50,-40,-30,-20,-10,0,10,20].map(z=>({x:45,z})),
+  ...[-50,-40,-30,-20,0,20].map(z=>({x:-41,z})),
+  {x:3,z:18},{x:13,z:18},{x:3,z:2},{x:13,z:2},{x:30,z:-46},{x:28,z:-25},
+];
+export const buildings: (Obstacle & { kind: string; name: string })[] = [
+  { kind:'lovett',name:'Lovett Hall',x:28,z:10,w:5,d:26 },
+  { kind:'fondren',name:'Fondren Library',x:-12,z:10,w:10,d:24 },
+  { kind:'pavilion',name:'Brochstein Pavilion',x:-30,z:10,w:12,d:8 },
+  { kind:'hall',name:'Duncan Hall',x:20,z:-17,w:16,d:10 },
+  { kind:'engineering',name:'O’Connor Building',x:18,z:-32,w:16,d:13 },
+  { kind:'college',name:'Duncan College',x:37,z:-49,w:16,d:14 },
+  { kind:'context',name:'Anderson Hall',x:-5,z:-1,w:14,d:4 },
+  { kind:'context',name:'Herzstein Hall',x:16,z:-1,w:13,d:4 },
+  { kind:'context',name:'Rayzor Hall',x:-5,z:23,w:13,d:4 },
+  { kind:'context',name:'Sewall Hall',x:19,z:23,w:12,d:4 },
+];
+export const obstacles: Obstacle[] = [
+  ...buildings.filter(b=>b.kind!=='lovett' && b.kind!=='college'),
+  { x:28,z:1.75,w:5,d:9.5 }, { x:28,z:18.25,w:5,d:9.5 },
+  { x:30,z:-49,w:2,d:14 },{ x:44,z:-49,w:2,d:14 },{x:37,z:-55,w:16,d:2},
+  ...trees.map(t=>({...t,w:1.3,d:1.3})),
+  {x:-30,z:2.8,w:10,d:1.2},
+];
+export function blocked(x:number,z:number) {
+  const r=.55;
+  return x<bounds.left+r || x>bounds.right-r || z<bounds.top+r || z>bounds.bottom-r || obstacles.some(o=> Math.abs(x-o.x)<o.w/2+r && Math.abs(z-o.z)<o.d/2+r);
+}
+export function move(p:Point,dx:number,dz:number):Point {
+  // Axis separation lets the player slide along walls. Substeps prevent tunnelling.
+  const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.2)); let {x,z}=p;
+  for(let i=0;i<count;i++){if(!blocked(x+dx/count,z)) x+=dx/count;if(!blocked(x,z+dz/count)) z+=dz/count;}
+  return {x,z};
+}
+export function nearest(p:Point){return exhibits.find(e=>Math.hypot(p.x-e.x,p.z-e.z)<3.7);}

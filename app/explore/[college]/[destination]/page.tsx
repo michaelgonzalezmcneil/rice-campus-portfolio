@@ -1,0 +1,4 @@
+import { colleges } from "@/data/colleges";
+import Link from "next/link"; import { mockRoutes } from "@/data/mockRoutes";
+export function generateStaticParams(){return colleges.flatMap(c=>Object.keys(mockRoutes).map(destination=>({college:c.slug,destination})))}
+export default async function WalkPage({params}:{params:Promise<{college:string;destination:string}>}){const{college,destination}=await params;const route=mockRoutes[destination]??mockRoutes.explore;return <main className="future-walk"><Link href={`/explore/${college}`}>← Back</Link><div><p className="eyebrow light">Future full-screen experience</p><h1>{college.replaceAll("-"," ")} → {route.destination}</h1><p>{route.minutes} min walk · Video generation coming next.</p><Link className="button button--light" href="/#explore">Open interactive demo</Link></div></main>}

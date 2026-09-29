@@ -1,0 +1,23 @@
+"use client";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Map, Pause, Play, RotateCcw, Search, Volume2, VolumeX } from "lucide-react";
+import { useRef, useState } from "react";
+import { colleges } from "@/data/colleges";
+import { locations } from "@/data/locations";
+import { mockRoutes } from "@/data/mockRoutes";
+
+type Stage = "college" | "destination" | "walk";
+export function ExplorePreview() {
+  const [stage, setStage] = useState<Stage>("college"), [query, setQuery] = useState(""), [destination, setDestination] = useState("first-class");
+  const [playing, setPlaying] = useState(true), [muted, setMuted] = useState(true), [videoFailed, setVideoFailed] = useState(false);
+  const video = useRef<HTMLVideoElement>(null); const route = mockRoutes[destination];
+  const togglePlay = () => { if (video.current) playing ? video.current.pause() : video.current.play(); setPlaying(!playing); };
+  const filtered = colleges.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+  return <section className="explore-section" id="explore"><div className="section-intro"><p className="eyebrow">Interactive preview</p><h2>See Rice from where<br/>you’ll live.</h2><p>Start at your residential college and explore campus from a student’s point of view.</p></div>
+    <div className="browser"><div className="browser-bar"><div className="dots"><i/><i/><i/></div><span>ricewalk / explore</span><span className="demo-pill">LIVE DEMO</span></div>
+      <div className="browser-body"><AnimatePresence mode="wait">
+        {stage === "college" && <motion.div key="college" className="selector" initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-18}}><div className="selector-head"><div><span className="step">01 — STARTING POINT</span><h3>Where will you live?</h3></div><label className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Find your college" aria-label="Find your college" /></label></div><div className="college-grid">{filtered.map(c=><button key={c.id} className={`college-card ${c.slug==="duncan"?"featured":""}`} onClick={()=>{if(c.slug==="duncan") setStage("destination")}}><div className="college-visual"><span>{c.name.charAt(0)}</span><div className="building-lines"/></div><div><strong>{c.name}</strong><small>{c.slug==="duncan"?"Featured preview":"Preview coming soon"}</small></div><ArrowRight size={19}/></button>)}</div></motion.div>}
+        {stage === "destination" && <motion.div key="destination" className="selector destination" initial={{opacity:0,x:30}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-30}}><button className="back" onClick={()=>setStage("college")}><ArrowLeft size={16}/> Change college</button><div className="selector-head"><div><span className="step">DUNCAN COLLEGE · 02</span><h3>Where do you want to go?</h3></div><p>Choose a moment in your day.</p></div><div className="destination-list">{locations.map(({id,name,detail,icon:Icon})=><button key={id} onClick={()=>{setDestination(id);setStage("walk")}}><span className="destination-icon"><Icon/></span><span><strong>{name}</strong><small>{detail}</small></span><span className="minutes">{mockRoutes[id].minutes} min <ArrowRight size={18}/></span></button>)}</div></motion.div>}
+        {stage === "walk" && <motion.div key="walk" className="walk" initial={{opacity:0,scale:1.02}} animate={{opacity:1,scale:1}} exit={{opacity:0}}><div className="walk-media">{!videoFailed&&<video ref={video} autoPlay muted={muted} loop playsInline onError={()=>setVideoFailed(true)}><source src="/videos/demo-walk.mp4" type="video/mp4"/></video>}<div className="walk-fallback"><div className="walk-sky"/><div className="walk-trees"/><div className="path"/></div><div className="walk-shade"/><button className="walk-back" onClick={()=>setStage("destination")}><ArrowLeft size={16}/> Destinations</button><div className="walk-title"><span>Duncan College → {route.destination}</span><strong>{route.minutes} min walk</strong></div><div className="walk-bottom"><div className="route-labels"><span>Duncan College</span><div className="progress"><i/></div><span>{route.destination}</span></div><div className="controls"><button onClick={togglePlay}>{playing?<Pause/>:<Play/>}<span>{playing?"Pause":"Play"}</span></button><button onClick={()=>{if(video.current)video.current.currentTime=0}}><RotateCcw/><span>Restart</span></button><button><Map/><span>Map</span></button><button onClick={()=>setMuted(!muted)}>{muted?<VolumeX/>:<Volume2/>}<span>Sound</span></button></div></div></div></motion.div>}
+      </AnimatePresence></div></div><p className="mock-note">Interactive concept · Walking times are placeholder estimates</p></section>;
+}

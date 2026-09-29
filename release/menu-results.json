@@ -1,0 +1,37 @@
+[
+  {
+    "panel": "Lovett Hall",
+    "visible": true
+  },
+  {
+    "closed": true
+  },
+  {
+    "panel": "Duncan Hall",
+    "visible": true
+  },
+  {
+    "closed": true
+  },
+  {
+    "panel": "Fondren Library",
+    "visible": true
+  },
+  {
+    "closed": true
+  },
+  {
+    "panel": "Brochstein Pavilion",
+    "visible": true
+  },
+  {
+    "closed": true
+  },
+  {
+    "panel": "Duncan College",
+    "visible": true
+  },
+  {
+    "closed": true
+  }
+]

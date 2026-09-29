@@ -1,0 +1,2 @@
+import Link from "next/link"; import { colleges } from "@/data/colleges";
+export default function Explore(){return <main className="route-page"><Link className="route-logo" href="/">RiceWalk</Link><p className="eyebrow">Explore campus</p><h1>Where will you live?</h1><p className="route-sub">Choose a starting point. Duncan is available in this preview.</p><div className="route-grid">{colleges.map(c=><Link key={c.id} href={`/explore/${c.slug}`}><span>{c.name[0]}</span><strong>{c.name}</strong><small>Explore from here →</small></Link>)}</div></main>}

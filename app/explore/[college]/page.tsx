@@ -1,0 +1,4 @@
+import { colleges } from "@/data/colleges";
+import Link from "next/link"; import { locations } from "@/data/locations"; import { mockRoutes } from "@/data/mockRoutes";
+export function generateStaticParams(){return colleges.map(c=>({college:c.slug}))}
+export default async function CollegePage({params}:{params:Promise<{college:string}>}){const{college}=await params;return <main className="route-page"><Link className="route-logo" href="/">RiceWalk</Link><Link className="route-back" href="/explore">← Change college</Link><p className="eyebrow">{college.replaceAll("-"," ")} college</p><h1>Where do you want to go?</h1><div className="route-destinations">{locations.map(({id,name,detail,icon:Icon})=><Link key={id} href={`/explore/${college}/${id}`}><Icon/><span><strong>{name}</strong><small>{detail}</small></span><b>{mockRoutes[id].minutes} min →</b></Link>)}</div></main>}
