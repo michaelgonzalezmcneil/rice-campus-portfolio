@@ -52,14 +52,26 @@ export const obstacles: Obstacle[] = [
   {x:-36,z:2.8,w:1.1,d:2},{x:-24,z:2.8,w:1.1,d:2},
   {x:-30,z:2.8,w:10,d:1.2},
 ];
+const radius=.55;
 export function blocked(x:number,z:number) {
-  const r=.55;
-  return x<bounds.left+r || x>bounds.right-r || z<bounds.top+r || z>bounds.bottom-r || obstacles.some(o=> Math.abs(x-o.x)<o.w/2+r && Math.abs(z-o.z)<o.d/2+r);
+ return x<bounds.left+radius || x>bounds.right-radius || z<bounds.top+radius || z>bounds.bottom-radius || obstacles.some(o=>{
+ const dx=Math.max(Math.abs(x-o.x)-o.w/2,0),dz=Math.max(Math.abs(z-o.z)-o.d/2,0);
+ return dx*dx+dz*dz<radius*radius-1e-8;
+ });
 }
 export function move(p:Point,dx:number,dz:number):Point {
-  // Axis separation lets the player slide along walls. Substeps prevent tunnelling.
-  const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.2)); let {x,z}=p;
-  for(let i=0;i<count;i++){if(!blocked(x+dx/count,z)) x+=dx/count;if(!blocked(x,z+dz/count)) z+=dz/count;}
-  return {x,z};
+ // Circle against rectangles: rounded corners and normal projection preserve sliding.
+ const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.15));let {x,z}=p;
+ for(let i=0;i<count;i++){
+ let nx=Math.max(bounds.left+radius,Math.min(bounds.right-radius,x+dx/count));
+ let nz=Math.max(bounds.top+radius,Math.min(bounds.bottom-radius,z+dz/count));
+ for(let pass=0;pass<4;pass++)for(const o of obstacles){
+ const cx=Math.max(o.x-o.w/2,Math.min(o.x+o.w/2,nx)),cz=Math.max(o.z-o.d/2,Math.min(o.z+o.d/2,nz));
+ const ax=nx-cx,az=nz-cz,d=Math.hypot(ax,az);
+ if(d>1e-8&&d<radius){nx=cx+ax/d*(radius+1e-5);nz=cz+az/d*(radius+1e-5);}
+ }
+ if(!blocked(nx,nz)){x=nx;z=nz;}else{if(!blocked(nx,z))x=nx;if(!blocked(x,nz))z=nz;}
+ }
+ return {x,z};
 }
 export function nearest(p:Point){return exhibits.find(e=>Math.hypot(p.x-e.x,p.z-e.z)<3.7);}

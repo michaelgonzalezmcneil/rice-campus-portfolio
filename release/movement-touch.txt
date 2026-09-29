@@ -1,0 +1,7 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+PASS pointercancel
+PASS lostpointercapture
+PASS touch run
+PASS reset cancels active pointer and run
+PASS touch panel and new pointer recovery
+PASS test finished

@@ -2,15 +2,39 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useLayoutEffect, createContext, useContext, memo, type ReactNode, type MutableRefObject } from 'react';
 import * as THREE from 'three';
+import { advance, turnTowards } from './motion';
 import { buildings, trees, benches, lamps, cafeTables, exhibits, owls, move, type Point } from './world';
-export type Controls = { keys:Set<string>; stick:Point; paused:boolean; position:Point; reset:number; reduced:boolean };
+export type Controls = { keys:Set<string>; stick:Point; paused:boolean; position:Point; reset:number; reduced:boolean; velocity:Point; running:boolean; heading:number; step:(running:boolean)=>void };
 type Props = { controls:MutableRefObject<Controls>; collected:number[]; onPosition:(p:Point)=>void; onReady:()=>void; onFail:()=>void; onStats:(s:string)=>void };
+const playerUniform={value:new THREE.Vector3(20,1.25,10)};
+// Dithered cutaway only along the camera-to-player sightline; preserves instancing and depth.
+function cutaway(shader:THREE.WebGLProgramParametersWithUniforms){
+ shader.uniforms.campusPlayer=playerUniform;
+ shader.vertexShader='varying vec3 campusWorld;\n'+shader.vertexShader;
+ shader.vertexShader=shader.vertexShader.replace('#include <worldpos_vertex>',`#include <worldpos_vertex>
+ vec4 campusPosition=vec4(transformed,1.0);
+ #ifdef USE_INSTANCING
+ campusPosition=instanceMatrix*campusPosition;
+ #endif
+ campusWorld=(modelMatrix*campusPosition).xyz;`);
+ shader.fragmentShader='uniform vec3 campusPlayer; varying vec3 campusWorld;\n'+shader.fragmentShader;
+ shader.fragmentShader=shader.fragmentShader.replace('#include <dithering_fragment>',`#include <dithering_fragment>
+ vec3 sight=normalize(cameraPosition-campusPlayer);
+ vec3 offset=campusWorld-campusPlayer;
+ float along=dot(offset,sight);
+ float distanceToSight=length(offset-sight*along);
+ if(campusWorld.y>.8 && along>.7 && distanceToSight<1.65){
+ float keep=mix(.16,1.,smoothstep(1.1,1.65,distanceToSight));
+ float pattern=fract(dot(floor(gl_FragCoord.xy),vec2(.754877,.569841)));
+ if(pattern>keep)discard;
+ }`);
+}
 type BoxProps={p:[number,number,number];s:[number,number,number];c?:string};
 const BoxContext=createContext<{items:Map<THREE.Object3D,string>;dirty:boolean}|null>(null);
 function BoxBatch({children}:{children:ReactNode}){
  const mesh=useRef<THREE.InstancedMesh>(null);const registry=useMemo(()=>({items:new Map<THREE.Object3D,string>(),dirty:true}),[]);
  useFrame(()=>{if(!registry.dirty||!mesh.current)return;let i=0;registry.items.forEach((color,object)=>{object.updateWorldMatrix(true,false);mesh.current!.setMatrixAt(i,object.matrixWorld);mesh.current!.setColorAt(i,new THREE.Color(color));i++});mesh.current.count=i;mesh.current.instanceMatrix.needsUpdate=true;if(mesh.current.instanceColor)mesh.current.instanceColor.needsUpdate=true;mesh.current.computeBoundingSphere();registry.dirty=false},-2);
- return <BoxContext.Provider value={registry}><instancedMesh ref={mesh} args={[undefined,undefined,4096]} castShadow receiveShadow><boxGeometry/><meshStandardMaterial roughness={.9}/></instancedMesh>{children}</BoxContext.Provider>
+ return <BoxContext.Provider value={registry}><instancedMesh ref={mesh} args={[undefined,undefined,4096]} castShadow receiveShadow><boxGeometry/><meshStandardMaterial roughness={.9} onBeforeCompile={cutaway}/></instancedMesh>{children}</BoxContext.Provider>
 }
 function Box({p,s,c='#c68f6c'}:BoxProps){const ref=useRef<THREE.Group>(null);const registry=useContext(BoxContext)!;useLayoutEffect(()=>{const object=ref.current!;registry.items.set(object,c);registry.dirty=true;return()=>{registry.items.delete(object);registry.dirty=true}},[registry,c,p[0],p[1],p[2],s[0],s[1],s[2]]);return <group ref={ref} position={p} scale={s}/>}
 function SolidBox({p,s,c='#c68f6c'}:BoxProps){return <mesh position={p} castShadow receiveShadow><boxGeometry args={s}/><meshStandardMaterial color={c} roughness={.9}/></mesh>}
@@ -80,7 +104,7 @@ function Trees(){
  for(let j=0;j<3;j++){const a=j*Math.PI*2/3+i*.7;o.rotation.set(0,a,0);o.position.set(t.x+Math.cos(a)*1.05,3.8+(j===0?.4:0),t.z+Math.sin(a)*1.05);o.scale.set(2.25,1.05,1.9);o.updateMatrix();leaves.current!.setMatrixAt(i*3+j,o.matrix);leaves.current!.setColorAt(i*3+j,new THREE.Color(['#58775a','#6f8b60','#7e9666'][(i+j)%3]));
  o.position.set(t.x+Math.cos(a)*.55,2.45,t.z+Math.sin(a)*.55);o.scale.set(.17,1.7,.17);o.rotation.set(Math.sin(a)*.8,0,-Math.cos(a)*.8);o.updateMatrix();branches.current!.setMatrixAt(i*3+j,o.matrix);}
  });for(const m of [trunks,leaves,branches]){m.current!.instanceMatrix.needsUpdate=true;m.current!.computeBoundingSphere()}if(leaves.current!.instanceColor)leaves.current!.instanceColor.needsUpdate=true;},[]);
- return <><instancedMesh ref={trunks} args={[undefined,undefined,trees.length]} castShadow><cylinderGeometry args={[.26,.42,2.8,6]}/><meshStandardMaterial color="#79634c"/></instancedMesh><instancedMesh ref={branches} args={[undefined,undefined,trees.length*3]} castShadow><cylinderGeometry args={[1,1,1,5]}/><meshStandardMaterial color="#79634c"/></instancedMesh><instancedMesh ref={leaves} args={[undefined,undefined,trees.length*3]} castShadow><icosahedronGeometry args={[1,1]}/><meshStandardMaterial roughness={1}/></instancedMesh></>
+ return <><instancedMesh ref={trunks} args={[undefined,undefined,trees.length]} castShadow><cylinderGeometry args={[.26,.42,2.8,6]}/><meshStandardMaterial color="#79634c" onBeforeCompile={cutaway}/></instancedMesh><instancedMesh ref={branches} args={[undefined,undefined,trees.length*3]} castShadow><cylinderGeometry args={[1,1,1,5]}/><meshStandardMaterial color="#79634c" onBeforeCompile={cutaway}/></instancedMesh><instancedMesh ref={leaves} args={[undefined,undefined,trees.length*3]} castShadow><icosahedronGeometry args={[1,1]}/><meshStandardMaterial roughness={1} onBeforeCompile={cutaway}/></instancedMesh></>
 }
 function Furnishings(){return <>
  {benches.map((b,i)=><group key={`bench${i}`} position={[b.x,0,b.z]} rotation={[0,b.rotation,0]}>{[-.25,0,.25].map(z=><Box key={z} p={[0,.65,z]} s={[2,.12,.18]} c="#9a7650"/>)}{[.95,1.2].map(y=><Box key={y} p={[0,y,-.32]} s={[2,.14,.12]} c="#9a7650"/>)}{[-.75,.75].map(x=><Box key={x} p={[x,.37,0]} s={[.13,.7,.65]} c="#344e47"/>)}</group>)}
@@ -91,16 +115,31 @@ function Furnishings(){return <>
  <Box p={[-30,1.22,2.8]} s={[9.65,.04,.85]} c="#7eacaa"/>
  </>}
 function Owl({p}:{p:Point}){return <group position={[p.x,1,p.z]}><mesh castShadow><sphereGeometry args={[.65,8,6]}/><meshStandardMaterial color="#d3a24e"/></mesh>{[-.27,.27].map(x=><group key={x}><mesh position={[x,.18,.51]}><sphereGeometry args={[.22,8,6]}/><meshStandardMaterial color="#fff2cc"/></mesh><mesh position={[x,.18,.7]}><sphereGeometry args={[.08,6,4]}/><meshStandardMaterial color="#223c3a"/></mesh><mesh position={[x,.6,0]}><coneGeometry args={[.22,.4,4]}/><meshStandardMaterial color="#b8873c"/></mesh></group>)}<mesh position={[0,.05,.7]} rotation={[Math.PI,0,0]}><coneGeometry args={[.13,.25,3]}/><meshStandardMaterial color="#df7146"/></mesh><mesh position={[0,-.8,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.85,1,24]}/><meshBasicMaterial color="#efd494" side={THREE.DoubleSide}/></mesh></group>}
-function Drone({reduced}:{reduced:boolean}){const ref=useRef<THREE.Group>(null);useFrame(({clock})=>{if(ref.current&&!reduced){ref.current.position.y=3.5+Math.sin(clock.elapsedTime*1.5)*.2;ref.current.rotation.y=clock.elapsedTime*.25}});return <group ref={ref} position={[-30,3.5,20]}><SolidBox p={[0,0,0]} s={[1,.35,.7]} c="#264b49"/>{[-1,1].flatMap(x=>[-1,1].map(z=><group key={`${x}${z}`}><SolidBox p={[x*.5,0,z*.5]} s={[1.4,.12,.15]} c="#e6c786"/><mesh position={[x,0,z]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.3,.48,12]}/><meshStandardMaterial color="#324c45" side={THREE.DoubleSide}/></mesh></group>))}</group>}
+function Drone({controls}:{controls:MutableRefObject<Controls>}){const ref=useRef<THREE.Group>(null);useFrame(({clock})=>{if(ref.current&&controls.current.reduced){ref.current.position.y=3.5;ref.current.rotation.y=0;}else if(ref.current&&!controls.current.paused){ref.current.position.y=3.5+Math.sin(clock.elapsedTime*1.5)*.2;ref.current.rotation.y=clock.elapsedTime*.25}});return <group ref={ref} position={[-30,3.5,20]}><SolidBox p={[0,0,0]} s={[1,.35,.7]} c="#264b49"/>{[-1,1].flatMap(x=>[-1,1].map(z=><group key={`${x}${z}`}><SolidBox p={[x*.5,0,z*.5]} s={[1.4,.12,.15]} c="#e6c786"/><mesh position={[x,0,z]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.3,.48,12]}/><meshStandardMaterial color="#324c45" side={THREE.DoubleSide}/></mesh></group>))}</group>}
 function World({controls,collected,onPosition,onReady,onFail,onStats}:Props){
- const player=useRef<THREE.Group>(null);const focus=useRef(new THREE.Vector3(20,0,10));const reset=useRef(-1);const elapsed=useRef(0);const samples=useRef<number[]>([]);const {gl,size,camera:viewportCamera}=useThree();
+ const player=useRef<THREE.Group>(null),body=useRef<THREE.Group>(null),leftLeg=useRef<THREE.Group>(null),rightLeg=useRef<THREE.Group>(null),leftArm=useRef<THREE.Group>(null),rightArm=useRef<THREE.Group>(null);const phase=useRef(0),stride=useRef(0);const focus=useRef(new THREE.Vector3(20,0,10));const reset=useRef(-1);const elapsed=useRef(0);const samples=useRef<number[]>([]);const {gl,size,camera:viewportCamera}=useThree();
  useEffect(()=>{if(viewportCamera instanceof THREE.OrthographicCamera){viewportCamera.zoom=Math.min(17,size.width/(size.width<600?44:60),size.height/44);viewportCamera.updateProjectionMatrix()}},[size,viewportCamera]);
  useEffect(()=>{const canvas=gl.domElement;const lost=(e:Event)=>{e.preventDefault();onFail()};canvas.addEventListener('webglcontextlost',lost);onReady();return()=>canvas.removeEventListener('webglcontextlost',lost)},[gl,onReady,onFail]);
- useFrame(({camera},delta)=>{const c=controls.current;let dx=0,dz=0;if(!c.paused){dx=Number(c.keys.has('d')||c.keys.has('arrowright'))-Number(c.keys.has('a')||c.keys.has('arrowleft'))+c.stick.x;dz=Number(c.keys.has('s')||c.keys.has('arrowdown'))-Number(c.keys.has('w')||c.keys.has('arrowup'))+c.stick.z;const n=Math.max(1,Math.hypot(dx,dz));dx/=n;dz/=n;c.position=move(c.position,(dx+dz)*.7071*9*Math.min(delta,.04),(dz-dx)*.7071*9*Math.min(delta,.04));}
- const p=c.position;if(player.current){player.current.position.set(p.x,0,p.z);if(dx||dz)player.current.rotation.y=Math.atan2(dx+dz,dz-dx);}
- if(reset.current!==c.reset){focus.current.set(p.x,0,p.z);reset.current=c.reset;}
- focus.current.lerp(new THREE.Vector3(p.x,0,p.z),c.reduced?1:1-Math.exp(-delta*5));camera.position.set(focus.current.x+28,44,focus.current.z+28);camera.lookAt(focus.current.x,0,focus.current.z);
- elapsed.current+=delta;samples.current.push(delta);if(elapsed.current>.12){onPosition({...p});elapsed.current=0;}if(samples.current.length>=120){const a=samples.current;onStats(`${Math.round(a.length/a.reduce((s,v)=>s+v,0))} fps · ${gl.info.render.calls} calls · ${gl.info.render.triangles.toLocaleString()} triangles`);samples.current=[];}
+ useFrame(({camera},delta)=>{const c=controls.current;const dt=Math.min(delta,.04);
+ if(reset.current!==c.reset){c.velocity={x:0,z:0};phase.current=0;stride.current=0;focus.current.set(c.position.x,0,c.position.z);reset.current=c.reset;}
+ let distance=0;const running=c.running||c.keys.has('shift');
+ if(c.paused){c.velocity={x:0,z:0};}else{
+ const input={x:Number(c.keys.has('d')||c.keys.has('arrowright'))-Number(c.keys.has('a')||c.keys.has('arrowleft'))+c.stick.x,z:Number(c.keys.has('s')||c.keys.has('arrowdown'))-Number(c.keys.has('w')||c.keys.has('arrowup'))+c.stick.z};
+ const result=advance(c.position,c.velocity,input,running,dt);c.position=result.position;c.velocity=result.velocity;distance=result.distance;
+ }
+ const p=c.position,speed=dt?distance/dt:0;
+ if(speed>.1)c.heading=turnTowards(c.heading,Math.atan2(c.velocity.x,c.velocity.z),dt);
+ phase.current+=distance*(running?3.8:4.7);stride.current+=distance;
+ if(!c.paused&&distance>0&&stride.current>(running?1.6:1.25)){stride.current=0;c.step(running);}
+ const swing=c.reduced||c.paused?0:Math.sin(phase.current)*Math.min(speed/8.5,1)*(running?.7:.48);
+ if(player.current){player.current.position.set(p.x,0,p.z);player.current.rotation.y=c.heading;}
+ if(body.current)body.current.position.y=c.reduced||c.paused?0:Math.abs(Math.sin(phase.current))*Math.min(speed/8.5,1)*.06;
+ if(leftLeg.current)leftLeg.current.rotation.x=swing;if(rightLeg.current)rightLeg.current.rotation.x=-swing;
+ if(leftArm.current)leftArm.current.rotation.x=-swing*.8;if(rightArm.current)rightArm.current.rotation.x=swing*.8;
+ focus.current.lerp(new THREE.Vector3(p.x,0,p.z),c.reduced?1:1-Math.exp(-dt*8));
+ // Fixed elevated orbit never enters campus geometry; no bob, zoom pulse, or camera shake.
+ camera.position.set(focus.current.x+28,44,focus.current.z+28);camera.lookAt(focus.current.x,0,focus.current.z);playerUniform.value.set(p.x,1.25,p.z);
+ elapsed.current+=delta;samples.current.push(delta);if(elapsed.current>.05){onPosition({...p});elapsed.current=0;}if(samples.current.length>=120){const a=samples.current;onStats(`${Math.round(a.length/a.reduce((s,v)=>s+v,0))} fps · ${gl.info.render.calls} calls · ${gl.info.render.triangles.toLocaleString()} triangles`);samples.current=[];}
  });
  return <BoxBatch><color attach="background" args={['#d9e2cf']}/><ambientLight intensity={1.2}/><hemisphereLight args={['#fff4db','#718364',1.8]}/><directionalLight position={[-25,60,25]} intensity={2.4} color="#ffe1ab" castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-65} shadow-camera-right={65} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-normalBias={.08}/>
  <Box p={[0,-.5,-14]} s={[101,1,96]} c="#92ac7d"/>
@@ -112,8 +151,8 @@ function World({controls,collected,onPosition,onReady,onFail,onStats}:Props){
  <Label text="LOVETT HALL" x={30.82} z={10} y={6.05} mounted rotation={Math.PI/2}/><Label text="FONDREN LIBRARY" x={-6.88} z={10} y={4.03} mounted rotation={Math.PI/2}/><Label text="BROCHSTEIN PAVILION" x={-30} z={14.12} y={2.35} mounted/><Label text="DUNCAN COLLEGE" x={44} z={-41.95} y={2.5} mounted/>
  {exhibits.map(e=><group key={e.id}><mesh position={[e.x,.13,e.z]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[1.15,1.4,24]}/><meshBasicMaterial color="#ffe1a0"/></mesh><Box p={[e.x,.8,e.z]} s={[.13,1.6,.13]} c="#b89657"/><mesh position={[e.x,1.85,e.z]} rotation={[0,Math.PI/4,0]}><octahedronGeometry args={[.42,0]}/><meshStandardMaterial color="#efbf66" emissive="#b77d21" emissiveIntensity={.25}/></mesh><Label text={`${e.number}  ${e.name}`} x={e.x} z={e.z} y={3}/></group>)}
  <Label text="ACADEMIC QUADRANGLE" x={8} z={12} y={.4}/><Label text="O’Connor · Engineering" x={18} z={-26} y={10}/><Label text="↑ Duncan College · compressed walk" x={34} z={-28} y={2}/>
- {owls.map((p,i)=>!collected.includes(i)&&<Owl key={i} p={p}/>)}<Drone reduced={controls.current.reduced}/>
- <group ref={player}><mesh position={[0,.08,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.6,.8,24]}/><meshBasicMaterial color="#fff7e2"/></mesh><SolidBox p={[0,.95,0]} s={[.72,.9,.48]} c="#204b60"/><mesh position={[0,1.75,0]} castShadow><sphereGeometry args={[.38,10,8]}/><meshStandardMaterial color="#d9a17b"/></mesh><mesh position={[0,1.98,-.04]}><sphereGeometry args={[.34,8,6,0,Math.PI*2,0,Math.PI/2]}/><meshStandardMaterial color="#443c33"/></mesh><SolidBox p={[-.23,.3,0]} s={[.25,.6,.3]} c="#31453e"/><SolidBox p={[.23,.3,0]} s={[.25,.6,.3]} c="#31453e"/><SolidBox p={[0,1,-.31]} s={[.52,.6,.25]} c="#cf9a50"/></group>
+ {owls.map((p,i)=>!collected.includes(i)&&<Owl key={i} p={p}/>)}<Drone controls={controls}/>
+ <group ref={player}><mesh position={[0,.08,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.6,.8,24]}/><meshBasicMaterial color="#fff7e2"/></mesh><group ref={body}><SolidBox p={[0,.95,0]} s={[.72,.9,.48]} c="#204b60"/><mesh position={[0,1.75,0]} castShadow><sphereGeometry args={[.38,10,8]}/><meshStandardMaterial color="#d9a17b"/></mesh><mesh position={[0,1.98,-.04]}><sphereGeometry args={[.34,8,6,0,Math.PI*2,0,Math.PI/2]}/><meshStandardMaterial color="#443c33"/></mesh><group ref={leftLeg} position={[-.23,.6,0]}><SolidBox p={[0,-.3,0]} s={[.25,.6,.3]} c="#31453e"/></group><group ref={rightLeg} position={[.23,.6,0]}><SolidBox p={[0,-.3,0]} s={[.25,.6,.3]} c="#31453e"/></group>{[[leftArm,-.48],[rightArm,.48]].map(([ref,x],i)=><group key={i} ref={ref as MutableRefObject<THREE.Group>} position={[x as number,1.25,0]}><SolidBox p={[0,-.28,0]} s={[.2,.62,.22]} c="#204b60"/></group>)}<SolidBox p={[0,1,-.31]} s={[.52,.6,.25]} c="#cf9a50"/></group></group>
  </BoxBatch>
 }
 export default memo(function Scene(props:Props){return <Canvas shadows={{type:THREE.PCFShadowMap}} dpr={[1,1.5]} orthographic camera={{zoom:15,position:[48,44,38],near:.1,far:180}} gl={{antialias:true,powerPreference:'high-performance'}}><World {...props}/></Canvas>})

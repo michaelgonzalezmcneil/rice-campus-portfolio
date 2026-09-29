@@ -36,6 +36,8 @@ The last command serves the production export with a local-only QA harness at ht
 ## Controls
 
 - WASD / arrows: screen-relative movement
+- Shift / touch Run: faster movement
+- Sound: mute or enable synthesized footsteps
 - E / touch Interact: open nearby exhibit
 - Escape: close dialog
 - Drag the mobile joystick; release to stop

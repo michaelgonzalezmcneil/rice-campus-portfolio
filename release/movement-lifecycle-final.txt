@@ -1,0 +1,10 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+PASS acceleration/brake: 5.41, 8.49, 1.64, 0
+PASS Shift: walk 8.49, run 13.95
+PASS clears input on blur
+PASS clears input on resize
+PASS clears input on visibilitychange
+PASS panel pause and resume
+PASS reset clears velocity
+PASS mute control
+PASS test finished

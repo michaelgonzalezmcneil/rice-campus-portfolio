@@ -33,3 +33,20 @@ test('interaction range requires proximity',()=>{
  assert.equal(nearest({x:0,z:-50}),undefined);
  for(const e of exhibits)assert.equal(nearest(e)?.id,e.id);
 });
+
+test('acceleration, braking and running are normalized and frame-rate stable',async()=>{
+ const {advance,WALK_SPEED,RUN_SPEED}=await import('../components/campus/motion.ts');
+ const simulate=(input,run=false,hz=60)=>{let p={x:0,z:10},v={x:0,z:0};for(let i=0;i<hz*.6;i++){const r=advance(p,v,input,run,1/hz);p=r.position;v=r.velocity;}return {p,v};};
+ const straight=simulate({x:1,z:0}),diagonal=simulate({x:1,z:1});
+ assert.ok(Math.abs(Math.hypot(straight.v.x,straight.v.z)-Math.hypot(diagonal.v.x,diagonal.v.z))<.001);
+ assert.ok(Math.hypot(straight.v.x,straight.v.z)<WALK_SPEED+.001);
+ const running=simulate({x:1,z:0},true);assert.ok(Math.hypot(running.v.x,running.v.z)>RUN_SPEED*.99);
+ const initial=advance({x:0,z:10},{x:0,z:0},{x:1,z:0},false,1/60);assert.ok(Math.hypot(initial.velocity.x,initial.velocity.z)<3);
+ let v=straight.v;for(let i=0;i<30;i++)v=advance({x:0,z:10},v,{x:0,z:0},false,1/60).velocity;assert.equal(Math.hypot(v.x,v.z),0);
+ const slower=simulate({x:1,z:0},false,30);assert.ok(Math.hypot(slower.p.x-straight.p.x,slower.p.z-straight.p.z)<.12);
+});
+test('rounded collision corners slide without penetration',()=>{
+ // Northwest corner of the Fondren collision rectangle.
+ let p={x:-18,z:-3};for(let i=0;i<60;i++){p=move(p,.025,.04);assert.equal(blocked(p.x,p.z),false);}
+ assert.ok(p.z>-1.2,'The circle should slide down the wall past the corner');
+});

@@ -3,3 +3,8 @@
 @media(max-width:420px){.campus-brand small{display:none}.campus-brand>span{width:38px;height:38px;font-size:30px}.opening-card h1{font-size:58px}.opening-intro{font-size:14px}.skip-link{margin-left:12px;font-size:10px}.opening-card .campus-button{padding:15px 19px}.opening-controls{font-size:10px}.minimap{width:130px}.minimap .map-legend{font-size:7px}.journey-card{max-width:235px}.interact-button{display:none}.portfolio-intro .skip-link{display:block;margin:15px 0}.webgl-fallback h1{font-size:42px}}
 @media(max-height:600px){.campus-opening{padding-top:80px}.opening-card h1{font-size:48px;margin:12px 0}.opening-intro{display:none}.opening-controls{margin:15px 0}.opening-note{margin-top:15px}.journey-card{top:80px}.minimap{bottom:74px;width:125px}.map-legend,.minimap p{display:none}.touch-controls{bottom:55px}.campus-dialog{max-height:90svh}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+.game-toolbar{flex-wrap:wrap;justify-content:flex-end}.touch-controls .touch-run{width:56px;height:56px;font-size:10px;background:#f8f4e5;color:#29493e;align-self:flex-end;margin-bottom:13px}.touch-controls .touch-run[aria-pressed=true]{background:#be914d;color:#fff}.interact-button{transition:background-color .12s ease}.game-toolbar button{min-height:40px}
+@media(max-width:420px){.game-toolbar{left:16px;gap:4px}.game-toolbar button{font-size:9px;padding:9px 10px}}
+
+.campus-app[data-reduced=true] *{transition:none!important;animation:none!important}

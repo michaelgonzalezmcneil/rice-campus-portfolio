@@ -127,3 +127,29 @@ Node.js 24 recommended. No backend/login/API keys required. `npm run test:browse
 - North-college materials, courtyard edge, and modular windows: https://www.hopkins.co.uk/projects/education/rice-university/ and its photograph https://www.hopkins.co.uk/assets/uploads/rice-n358.jpg (visually inspected).
 
 All additions are original procedural geometry. Reference photographs are not bundled; their copyright remains with the respective owners. The models intentionally simplify exact bay counts, interior spaces, and landscape geometry; this is still a stylized campus rather than an architectural survey.
+
+
+## Movement and camera polish — September 29, 2026
+
+### Changes
+
+- Exponential acceleration and braking, normalized combined keyboard/analog input, shortest-angle character turning, and distance-driven arm/leg animation with subtle body bob. Walking is 8.5 world units/second; Shift or the touch Run toggle increases this to 14. The joystick has a small center dead zone.
+- Circular player collision against rectangular obstacles replaces square corner checks. Substeps and normal projection allow sliding around corners while preserving building and furniture boundaries.
+- The fixed elevated camera follows with frame-rate-aware smoothing, without bobbing, shaking, or zoom pulses. It stays above the highest geometry. A local dithered cutaway on the camera-to-player sightline reveals the character through buildings, roofs, trunks, and oak canopies while retaining instanced rendering.
+- Quiet synthesized footfalls unlock after interaction. Sound toggles mute with a short gain ramp. Footsteps follow distance actually walked, so pushing into a wall does not keep producing steps. No external audio assets were added.
+- Inputs and velocity clear on panels, blur, visibility changes, resize, pointer cancellation, and lost capture. Reset also clears run mode, stick state, heading, stride, and camera lag. Prompts update at roughly 20 Hz. Closing a dialog returns focus to the game.
+- Reduced motion disables limb swing, body bob, decorative drone movement, CSS transitions, and camera easing. Fixed an existing stale reduced-motion prop on the drone.
+
+### Verification
+
+- Final production build: 103 static pages. Standalone TypeScript check and all **7 tests** passed, including acceleration/braking, diagonal normalization, walk/run speed, frame-rate comparison, rounded-corner sliding, reachability, and tunnelling checks.
+- Browser input lifecycle passed: acceleration and deceleration, Shift running, blur/resize/visibility event recovery, panel pause and resumed movement, reset with zero velocity, and mute. Observed speed samples: walk 8.49, run 13.94 world units/second; these are game-state readings, not rendering benchmarks.
+- Full input-driven journey passed for all exhibits, all owls, completion, reload persistence, reset, and replay. Evidence: `release/movement-journey.txt`, `release/movement-lifecycle.txt`, and the passing final rerun in `release/movement-lifecycle-final.txt`. One fixed-duration Shift sample fell below its test threshold while multiple preview tabs were active; the same final build passed an immediate rerun (13.95 versus 8.49 walk speed). The deterministic speed test passed throughout.
+- Touch tests passed: release, Interact, pointercancel, lostpointercapture, Run, reset during an active drag, and panel/new-pointer recovery (`release/movement-touch.txt`). Native browser joystick drag after an actual viewport resize also moved the character; reset restored `(20,10)`.
+- Sallyport center was reached by walking. Its occluding masonry cutaway was visually inspected and saved in `release/screenshots/movement-sallyport.png`. Final mobile controls were inspected at 390×844 (`movement-mobile.png`).
+- Final desktop rendering observation: 60 fps, 65 draw calls, 56,698 triangles over 120 frames (1280×720, at spawn, reduced motion enabled). This is not a cross-device benchmark.
+- On the final build, a real Start click put Web Audio into `running`; mute toggled correctly. Reduced-motion state was verified after toggling. A fresh normal game session logged no console errors. The upstream Three.js Clock warning remains.
+
+### Limits
+
+The fade is a small dithered cutaway, not whole-building transparency. Audio playback state and controls were tested; acoustic quality through physical speakers/headphones was not assessed. Touch testing used browser pointer input and viewport overrides, not physical mobile hardware. Blur and visibility recovery were exercised with lifecycle events; native mobile app-switching remains untested. Footsteps use original synthesized tones with no attribution requirement. Preview commands and campus source credits above remain applicable.
