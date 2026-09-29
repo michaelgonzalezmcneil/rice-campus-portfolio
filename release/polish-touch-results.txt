@@ -1,0 +1,4 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+PASS joystick move and release
+PASS touch Interact
+PASS test finished

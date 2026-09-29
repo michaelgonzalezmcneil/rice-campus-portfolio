@@ -31,10 +31,11 @@ function cutaway(shader:THREE.WebGLProgramParametersWithUniforms){
 }
 type BoxProps={p:[number,number,number];s:[number,number,number];c?:string};
 const BoxContext=createContext<{items:Map<THREE.Object3D,string>;dirty:boolean}|null>(null);
-function BoxBatch({children}:{children:ReactNode}){
- const mesh=useRef<THREE.InstancedMesh>(null);const registry=useMemo(()=>({items:new Map<THREE.Object3D,string>(),dirty:true}),[]);
- useFrame(()=>{if(!registry.dirty||!mesh.current)return;let i=0;registry.items.forEach((color,object)=>{object.updateWorldMatrix(true,false);mesh.current!.setMatrixAt(i,object.matrixWorld);mesh.current!.setColorAt(i,new THREE.Color(color));i++});mesh.current.count=i;mesh.current.instanceMatrix.needsUpdate=true;if(mesh.current.instanceColor)mesh.current.instanceColor.needsUpdate=true;mesh.current.computeBoundingSphere();registry.dirty=false},-2);
- return <BoxContext.Provider value={registry}><instancedMesh ref={mesh} args={[undefined,undefined,4096]} castShadow receiveShadow><boxGeometry/><meshStandardMaterial roughness={.9} onBeforeCompile={cutaway}/></instancedMesh>{children}</BoxContext.Provider>
+function BoxBatch({children,night}:{children:ReactNode;night:boolean}){
+ const mesh=useRef<THREE.InstancedMesh>(null),glow=useRef<THREE.InstancedMesh>(null);const registry=useMemo(()=>({items:new Map<THREE.Object3D,string>(),dirty:true}),[]);
+ useLayoutEffect(()=>{registry.dirty=true},[night,registry]);
+ useFrame(()=>{if(!registry.dirty||!mesh.current||!glow.current)return;let i=0,j=0;registry.items.forEach((color,object)=>{object.updateWorldMatrix(true,false);const lit=night&&['#476c70','#719799','#f4dfaa'].includes(color);const target=lit?glow.current!:mesh.current!;const index=lit?j++:i++;target.setMatrixAt(index,object.matrixWorld);target.setColorAt(index,new THREE.Color(lit?'#f9cb82':color))});mesh.current.count=i;glow.current.count=j;for(const target of [mesh.current,glow.current]){target.instanceMatrix.needsUpdate=true;if(target.instanceColor)target.instanceColor.needsUpdate=true;target.computeBoundingSphere()}registry.dirty=false},-2);
+ return <BoxContext.Provider value={registry}><instancedMesh ref={mesh} args={[undefined,undefined,4096]} castShadow receiveShadow><boxGeometry/><meshStandardMaterial roughness={.9} onBeforeCompile={cutaway}/></instancedMesh><instancedMesh ref={glow} args={[undefined,undefined,512]}><boxGeometry/><meshBasicMaterial onBeforeCompile={cutaway}/></instancedMesh>{children}</BoxContext.Provider>
 }
 function Box({p,s,c='#c68f6c'}:BoxProps){const ref=useRef<THREE.Group>(null);const registry=useContext(BoxContext)!;useLayoutEffect(()=>{const object=ref.current!;registry.items.set(object,c);registry.dirty=true;return()=>{registry.items.delete(object);registry.dirty=true}},[registry,c,p[0],p[1],p[2],s[0],s[1],s[2]]);return <group ref={ref} position={p} scale={s}/>}
 function SolidBox({p,s,c='#c68f6c'}:BoxProps){return <mesh position={p} castShadow receiveShadow><boxGeometry args={s}/><meshStandardMaterial color={c} roughness={.9}/></mesh>}
@@ -141,7 +142,7 @@ function World({night,controls,collected,onPosition,onReady,onFail,onStats}:Prop
  camera.position.set(focus.current.x+28,44,focus.current.z+28);camera.lookAt(focus.current.x,0,focus.current.z);playerUniform.value.set(p.x,1.25,p.z);
  elapsed.current+=delta;samples.current.push(delta);if(elapsed.current>.05){onPosition({...p});elapsed.current=0;}if(samples.current.length>=120){const a=samples.current;onStats(`${Math.round(a.length/a.reduce((s,v)=>s+v,0))} fps · ${gl.info.render.calls} calls · ${gl.info.render.triangles.toLocaleString()} triangles`);samples.current=[];}
  });
- return <BoxBatch><color attach="background" args={[night?'#23364e':'#d9e2cf']}/><ambientLight intensity={night?.65:1.2}/><hemisphereLight args={['#fff4db','#718364',night?.8:1.8]}/><directionalLight position={[-25,60,25]} intensity={night?1.1:2.4} color={night?'#b9d4ff':'#ffe1ab'} castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-65} shadow-camera-right={65} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-normalBias={.08}/>
+ return <BoxBatch night={night}><color attach="background" args={[night?'#444c65':'#dfe5d0']}/><ambientLight intensity={night?.45:1.05}/><hemisphereLight args={[night?'#b2bedf':'#fff4db','#718364',night?.7:1.65]}/><directionalLight position={[-25,60,25]} intensity={night?.8:2.5} color={night?'#b9d4ff':'#ffe1ab'} castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-65} shadow-camera-right={65} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-normalBias={.08}/>
  <Box p={[0,-.5,-14]} s={[101,1,96]} c="#92ac7d"/>
  {/* Main axis, the two sides of the quad, Laboratory Road and the north-college route. */}
  {[[-4,10,76,3],[9,4,37,1.8],[9,16,37,1.8],[31,-17,3,73],[-19,10,2,29],[0,-8,65,3.5],[-28,-8,3,36],[37,-37,3,24],[34,-39,9,2]].map(([x,z,w,d],i)=><Box key={i} p={[x,.02,z]} s={[w,.08,d]} c="#e1d3ae"/>)}

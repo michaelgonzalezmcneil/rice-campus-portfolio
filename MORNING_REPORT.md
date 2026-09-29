@@ -201,3 +201,19 @@ Verified this update:
 - Screenshots: `release/screenshots/discovery-mobile.png`, `discovery-passport.png`, and `discovery-final.png`. Gameplay log: `release/discovery-results.txt`. The log retains an initial harness click/loading failure; the subsequent discovery run passed. A too-conservative route target near the bench was corrected in the harness before the passing run.
 
 Preview from the project directory: `npm run build`, then `PORT=3025 npm run preview`; open `http://127.0.0.1:3025/campus`. Existing campus references and asset credits above still apply; no new external source or asset was introduced. No deployment performed.
+
+## Cohesive visual polish — September 29
+
+Refined the opening around a large editorial title, visible Lovett Hall backdrop, and explicit Explore / View Portfolio actions. Explore accepts input immediately; the scene still needs its initial asset load, with a loading notice while portfolio navigation remains available. Updated full-name branding, typography, paper/forest/brass colors, control sizing, dialog spacing, focus states, gentle panel transitions, and readable minimap labels. On phones, the minimap starts collapsed to leave the campus visible.
+
+Added an always-available Day/Dusk toggle, including on the opening screen. Dusk persists as a preference without requiring the nighttime Easter egg. Warm windows and lamppost lanterns share one extra instanced unlit material batch; no additional point lights, shadow maps, bloom, textures, or external assets. Daytime keeps warm sunlight; dusk keeps paths and the player readable. Reduced-motion settings disable the panel transition.
+
+Verified:
+- Production build and TypeScript passed; all 10 unit tests passed.
+- Inspected 1280×720 desktop opening and dusk gameplay, plus 390×844 phone opening, gameplay and Lovett dialog. Fixed the phone minimap's initial toggle race and added a paper backing behind the name for dusk contrast.
+- Browser regression checks passed WASD, arrow movement, reset, exhibit opening, movement pause and close. Dedicated phone-size harness passed joystick movement/release and Interact. An earlier touch attempt used the wrong viewport and was rerun successfully on a fresh phone-size tab.
+- Dusk preference survived reload; the toggle switches back to daytime. Contact link still points to `mailto:mg188@rice.edu`; portfolio remains in the header and opening actions. No console errors in the inspected dusk session.
+- Screenshots saved under `release/screenshots/polish-*.png`; phone touch evidence is `release/polish-touch-results.txt`.
+- This pass did not rerun every mini-game or discovery route, test physical phones/Safari, or establish a performance benchmark. Geometry/collision/movement rules remain unchanged.
+
+Preview remains `PORT=3025 npm run preview` after `npm run build`, at `http://127.0.0.1:3025/campus`. Existing source/asset credits apply; all additions are original CSS and procedural geometry. No deployment.
