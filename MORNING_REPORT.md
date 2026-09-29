@@ -182,3 +182,22 @@ Each starts only on request, has Replay and Stop controls, supports standard but
 ### Assets and limitations
 
 All new yard illustrations are original HTML/CSS grids with text symbols; no external images, applicant records, AI detections, or audio were added. Existing campus/reference credits remain applicable. Desktop keyboard and browser pointer input at narrow viewports were tested; no physical phone or screen-reader testing is claimed. OwlRecruit/OwlDB remain absent pending verified project content. No external project URL was invented.
+
+## Discovery layer — September 29 update
+
+Implemented an optional owl guide, five exhibit passport stamps, and three fictional discoveries: an owl under the western oaks, a brass-feather bench that reviews its visitor, and a crescent lantern in Duncan’s courtyard that changes the campus to blue hour. The owl remains visible after collection so its interaction remains discoverable. The night scene uses the existing lights with cooler colors and a procedural moon; no new shadow lights or downloaded assets. All new dialogue, geometry, and postcard artwork are original.
+
+The passport records exhibits opened, including from its accessible menu; it does not claim a physical visit when someone uses that menu. Completion of five exhibits and three discoveries adds a quiet passport message and badge. The postcard can be downloaded at any point as a standalone SVG. Collecting all golden owls no longer forces a popup. Portfolio access remains unrestricted.
+
+Progress uses `michael-campus-progress-v2`, with validated exhibit IDs, discovery IDs, owl indices, and sound/motion/night preferences only. The old owl key migrates once. Reset progress clears stamps, secrets, owls and night mode while retaining sound/motion preferences. Storage denial keeps the visit playable in memory. Multiple simultaneous tabs are not synchronized; the most recent save wins.
+
+Verified this update:
+- Production build: 103 static pages. Type check passed. All 10 unit tests passed, including malformed progress, unknown-field filtering, walkable interaction points, and SVG escaping.
+- Browser gameplay walked to all three discoveries without teleporting; each interaction opened, paused movement, and closed. All five passport exhibits opened, completion appeared, and progress survived reload.
+- Reset progress visibly returned stamps, discoveries and owl counts to zero. Denied-storage browser fault test started, walked, collected and showed its session-only notice without errors.
+- Inspected 390×844 mobile controls and passport; guide and passport controls worked. This update did not repeat physical-device testing or every earlier mini-game test.
+- Download button produced `michaels-rice-postcard.svg` in Downloads; the file parsed as valid SVG. The browser download-event waiter timed out despite the successful file download.
+- No browser console errors in the discovery/denied-storage session. No new controlled performance benchmark. Existing instancing, pixel-ratio cap and one shadow map remain.
+- Screenshots: `release/screenshots/discovery-mobile.png`, `discovery-passport.png`, and `discovery-final.png`. Gameplay log: `release/discovery-results.txt`. The log retains an initial harness click/loading failure; the subsequent discovery run passed. A too-conservative route target near the bench was corrected in the harness before the passing run.
+
+Preview from the project directory: `npm run build`, then `PORT=3025 npm run preview`; open `http://127.0.0.1:3025/campus`. Existing campus references and asset credits above still apply; no new external source or asset was introduced. No deployment performed.

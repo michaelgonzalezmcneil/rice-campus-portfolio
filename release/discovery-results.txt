@@ -1,0 +1,15 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+FAIL Missing button Reset position
+Reached 15,16: 15.03,15.66
+PASS exhibit / pause / close: The listening bench
+Reached -32,-1: -31.9,-1.29
+PASS exhibit / pause / close: The quiet resident
+Reached 37,-44: 36.9,-43.64
+PASS exhibit / pause / close: After the last class
+PASS three discoveries and passport
+PASS optional completion postcard
+PASS reload preserves passport and secrets
+PASS test finished
+Reached 8,21: 8.12,20.62
+PASS denied storage: start, walk, collect, read/write recovery
+PASS test finished

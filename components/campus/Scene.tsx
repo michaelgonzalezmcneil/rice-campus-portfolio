@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { advance, turnTowards } from './motion';
 import { buildings, trees, benches, lamps, cafeTables, exhibits, owls, move, type Point } from './world';
 export type Controls = { keys:Set<string>; stick:Point; paused:boolean; position:Point; reset:number; reduced:boolean; velocity:Point; running:boolean; heading:number; step:(running:boolean)=>void };
-type Props = { controls:MutableRefObject<Controls>; collected:number[]; onPosition:(p:Point)=>void; onReady:()=>void; onFail:()=>void; onStats:(s:string)=>void };
+type Props = { night:boolean; controls:MutableRefObject<Controls>; collected:number[]; onPosition:(p:Point)=>void; onReady:()=>void; onFail:()=>void; onStats:(s:string)=>void };
 const playerUniform={value:new THREE.Vector3(20,1.25,10)};
 // Dithered cutaway only along the camera-to-player sightline; preserves instancing and depth.
 function cutaway(shader:THREE.WebGLProgramParametersWithUniforms){
@@ -116,7 +116,7 @@ function Furnishings(){return <>
  </>}
 function Owl({p}:{p:Point}){return <group position={[p.x,1,p.z]}><mesh castShadow><sphereGeometry args={[.65,8,6]}/><meshStandardMaterial color="#d3a24e"/></mesh>{[-.27,.27].map(x=><group key={x}><mesh position={[x,.18,.51]}><sphereGeometry args={[.22,8,6]}/><meshStandardMaterial color="#fff2cc"/></mesh><mesh position={[x,.18,.7]}><sphereGeometry args={[.08,6,4]}/><meshStandardMaterial color="#223c3a"/></mesh><mesh position={[x,.6,0]}><coneGeometry args={[.22,.4,4]}/><meshStandardMaterial color="#b8873c"/></mesh></group>)}<mesh position={[0,.05,.7]} rotation={[Math.PI,0,0]}><coneGeometry args={[.13,.25,3]}/><meshStandardMaterial color="#df7146"/></mesh><mesh position={[0,-.8,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.85,1,24]}/><meshBasicMaterial color="#efd494" side={THREE.DoubleSide}/></mesh></group>}
 function Drone({controls}:{controls:MutableRefObject<Controls>}){const ref=useRef<THREE.Group>(null);useFrame(({clock})=>{if(ref.current&&controls.current.reduced){ref.current.position.y=3.5;ref.current.rotation.y=0;}else if(ref.current&&!controls.current.paused){ref.current.position.y=3.5+Math.sin(clock.elapsedTime*1.5)*.2;ref.current.rotation.y=clock.elapsedTime*.25}});return <group ref={ref} position={[-30,3.5,20]}><SolidBox p={[0,0,0]} s={[1,.35,.7]} c="#264b49"/>{[-1,1].flatMap(x=>[-1,1].map(z=><group key={`${x}${z}`}><SolidBox p={[x*.5,0,z*.5]} s={[1.4,.12,.15]} c="#e6c786"/><mesh position={[x,0,z]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.3,.48,12]}/><meshStandardMaterial color="#324c45" side={THREE.DoubleSide}/></mesh></group>))}</group>}
-function World({controls,collected,onPosition,onReady,onFail,onStats}:Props){
+function World({night,controls,collected,onPosition,onReady,onFail,onStats}:Props){
  const player=useRef<THREE.Group>(null),body=useRef<THREE.Group>(null),leftLeg=useRef<THREE.Group>(null),rightLeg=useRef<THREE.Group>(null),leftArm=useRef<THREE.Group>(null),rightArm=useRef<THREE.Group>(null);const phase=useRef(0),stride=useRef(0);const focus=useRef(new THREE.Vector3(20,0,10));const reset=useRef(-1);const elapsed=useRef(0);const samples=useRef<number[]>([]);const {gl,size,camera:viewportCamera}=useThree();
  useEffect(()=>{if(viewportCamera instanceof THREE.OrthographicCamera){viewportCamera.zoom=Math.min(17,size.width/(size.width<600?44:60),size.height/44);viewportCamera.updateProjectionMatrix()}},[size,viewportCamera]);
  useEffect(()=>{const canvas=gl.domElement;const lost=(e:Event)=>{e.preventDefault();onFail()};canvas.addEventListener('webglcontextlost',lost);onReady();return()=>canvas.removeEventListener('webglcontextlost',lost)},[gl,onReady,onFail]);
@@ -141,17 +141,22 @@ function World({controls,collected,onPosition,onReady,onFail,onStats}:Props){
  camera.position.set(focus.current.x+28,44,focus.current.z+28);camera.lookAt(focus.current.x,0,focus.current.z);playerUniform.value.set(p.x,1.25,p.z);
  elapsed.current+=delta;samples.current.push(delta);if(elapsed.current>.05){onPosition({...p});elapsed.current=0;}if(samples.current.length>=120){const a=samples.current;onStats(`${Math.round(a.length/a.reduce((s,v)=>s+v,0))} fps · ${gl.info.render.calls} calls · ${gl.info.render.triangles.toLocaleString()} triangles`);samples.current=[];}
  });
- return <BoxBatch><color attach="background" args={['#d9e2cf']}/><ambientLight intensity={1.2}/><hemisphereLight args={['#fff4db','#718364',1.8]}/><directionalLight position={[-25,60,25]} intensity={2.4} color="#ffe1ab" castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-65} shadow-camera-right={65} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-normalBias={.08}/>
+ return <BoxBatch><color attach="background" args={[night?'#23364e':'#d9e2cf']}/><ambientLight intensity={night?.65:1.2}/><hemisphereLight args={['#fff4db','#718364',night?.8:1.8]}/><directionalLight position={[-25,60,25]} intensity={night?1.1:2.4} color={night?'#b9d4ff':'#ffe1ab'} castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-65} shadow-camera-right={65} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-normalBias={.08}/>
  <Box p={[0,-.5,-14]} s={[101,1,96]} c="#92ac7d"/>
  {/* Main axis, the two sides of the quad, Laboratory Road and the north-college route. */}
  {[[-4,10,76,3],[9,4,37,1.8],[9,16,37,1.8],[31,-17,3,73],[-19,10,2,29],[0,-8,65,3.5],[-28,-8,3,36],[37,-37,3,24],[34,-39,9,2]].map(([x,z,w,d],i)=><Box key={i} p={[x,.02,z]} s={[w,.08,d]} c="#e1d3ae"/>)}
  <Box p={[8,.06,10]} s={[23,.1,12]} c="#a9bb89"/><Box p={[8,.13,10]} s={[23,.08,2]} c="#e6d9b8"/>
  <Box p={[-30,.05,10]} s={[18,.12,17]} c="#d7ceac"/><Box p={[-30,.6,2.8]} s={[10,1.2,1.2]} c="#647b74"/>
  {buildings.map(b=><Building key={b.name} b={b}/>)}<Trees/><Furnishings/>
+ <Owl p={{x:22,z:13}}/>
+ <mesh position={[13,.9,14.1]} rotation={[-Math.PI/2,0,.4]}><circleGeometry args={[.24,6]}/><meshStandardMaterial color="#e7c36c"/></mesh>
+ <mesh position={[37,1.1,-43]}><torusGeometry args={[.38,.09,6,20,Math.PI*1.5]}/><meshStandardMaterial color="#e7c36c" emissive="#efbc66" emissiveIntensity={night?2:.3}/></mesh>
+ {night&&<mesh position={[-9,29,-36]}><sphereGeometry args={[2,16,12]}/><meshBasicMaterial color="#fff0c7"/></mesh>}
+
  <Label text="LOVETT HALL" x={30.82} z={10} y={6.05} mounted rotation={Math.PI/2}/><Label text="FONDREN LIBRARY" x={-6.88} z={10} y={4.03} mounted rotation={Math.PI/2}/><Label text="BROCHSTEIN PAVILION" x={-30} z={14.12} y={2.35} mounted/><Label text="DUNCAN COLLEGE" x={44} z={-41.95} y={2.5} mounted/>
  {exhibits.map(e=><group key={e.id}><mesh position={[e.x,.13,e.z]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[1.15,1.4,24]}/><meshBasicMaterial color="#ffe1a0"/></mesh><Box p={[e.x,.8,e.z]} s={[.13,1.6,.13]} c="#b89657"/><mesh position={[e.x,1.85,e.z]} rotation={[0,Math.PI/4,0]}><octahedronGeometry args={[.42,0]}/><meshStandardMaterial color="#efbf66" emissive="#b77d21" emissiveIntensity={.25}/></mesh><Label text={`${e.number}  ${e.name}`} x={e.x} z={e.z} y={3}/></group>)}
  <Label text="ACADEMIC QUADRANGLE" x={8} z={12} y={.4}/><Label text="O’Connor · Engineering" x={18} z={-26} y={10}/><Label text="↑ Duncan College · compressed walk" x={34} z={-28} y={2}/>
- {owls.map((p,i)=>!collected.includes(i)&&<Owl key={i} p={p}/>)}<Drone controls={controls}/>
+ {owls.map((p,i)=>(i===1||!collected.includes(i))&&<Owl key={i} p={p}/>)}<Drone controls={controls}/>
  <group ref={player}><mesh position={[0,.08,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.6,.8,24]}/><meshBasicMaterial color="#fff7e2"/></mesh><group ref={body}><SolidBox p={[0,.95,0]} s={[.72,.9,.48]} c="#204b60"/><mesh position={[0,1.75,0]} castShadow><sphereGeometry args={[.38,10,8]}/><meshStandardMaterial color="#d9a17b"/></mesh><mesh position={[0,1.98,-.04]}><sphereGeometry args={[.34,8,6,0,Math.PI*2,0,Math.PI/2]}/><meshStandardMaterial color="#443c33"/></mesh><group ref={leftLeg} position={[-.23,.6,0]}><SolidBox p={[0,-.3,0]} s={[.25,.6,.3]} c="#31453e"/></group><group ref={rightLeg} position={[.23,.6,0]}><SolidBox p={[0,-.3,0]} s={[.25,.6,.3]} c="#31453e"/></group>{[[leftArm,-.48],[rightArm,.48]].map(([ref,x],i)=><group key={i} ref={ref as MutableRefObject<THREE.Group>} position={[x as number,1.25,0]}><SolidBox p={[0,-.28,0]} s={[.2,.62,.22]} c="#204b60"/></group>)}<SolidBox p={[0,1,-.31]} s={[.52,.6,.25]} c="#cf9a50"/></group></group>
  </BoxBatch>
 }
