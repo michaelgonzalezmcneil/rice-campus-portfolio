@@ -4,7 +4,7 @@
 
 The playable campus is implemented and the final production export passed release checks. Nothing has been deployed or purchased.
 
-Private repository: https://github.com/michaelgonzalezmcneil/rice-campus-portfolio
+Private repository (initial release pushed to `main`): https://github.com/michaelgonzalezmcneil/rice-campus-portfolio
 
 ## Completed
 
@@ -23,7 +23,7 @@ Private repository: https://github.com/michaelgonzalezmcneil/rice-campus-portfol
 - Standalone `npm run typecheck` passed after scoping the project to actual Next.js entry points and imported dependencies.
 - `npm test`: 5 tests passed. Checks spawn/exhibit/owl walkability, flood-fill reachability for every exhibit and owl, wall sliding, anti-tunnelling, Sallyport passage, world bounds, and interaction proximity.
 - Production browser walking harness: all five exhibits reached using keyboard events (no teleporting), each opened with E, each paused movement, each closed.
-- Production browser: all three owls collected, completion appeared, reload restored 3/3, reset returned to `(20,10)`.
+- Final production browser journey: all three owls collected, completion appeared, reload restored 3/3, reset returned to `(20,10)`. A second full hunt completed; Restart cleared all owls and saved progress and restored spawn. The harness accounts for the automatic completion dialog pausing movement.
 - Direct portfolio menu: every exhibit opened without starting the game; Escape closed all five.
 - Sustained WASD and arrow input passed; minimap location changed with movement.
 - Native browser drag exercised joystick movement; mobile Interact opened the welcome panel.
@@ -35,7 +35,7 @@ Private repository: https://github.com/michaelgonzalezmcneil/rice-campus-portfol
 - Contact links inspected: `mailto:mg188@rice.edu`. No email was sent and mail-client handoff is not claimed as tested.
 - Existing home page loaded and its prominent campus links point to `/campus`.
 
-Evidence: `release/journey-results.txt`, `release/menu-results.json`, `release/storage-results.txt`, `release/touch-results.txt`, `release/normal-console.json`, and `release/screenshots/`.
+Evidence: `release/final-journey-results.txt`, `release/journey-results.txt`, `release/menu-results.json`, `release/storage-results.txt`, `release/touch-results.txt`, `release/normal-console.json`, and `release/screenshots/`.
 
 ## Performance observations
 
