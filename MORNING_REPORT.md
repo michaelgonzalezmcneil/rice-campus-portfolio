@@ -217,3 +217,23 @@ Verified:
 - This pass did not rerun every mini-game or discovery route, test physical phones/Safari, or establish a performance benchmark. Geometry/collision/movement rules remain unchanged.
 
 Preview remains `PORT=3025 npm run preview` after `npm run build`, at `http://127.0.0.1:3025/campus`. Existing source/asset credits apply; all additions are original CSS and procedural geometry. No deployment.
+
+## Fast portfolio browsing — September 29
+
+The game header now keeps a text-labeled **View Portfolio** link visible on desktop and phones, including the WebGL fallback. It opens the static HTML portfolio. The portfolio leads with Michael’s introduction and email, then three supported project summaries: the existing RiceWalk website, this interactive campus, and the explicitly fictional YardOS scan-comparison demo. Sticky navigation links to projects, experience, contact and Return to game. Full exhibit content and activities remain below the summaries.
+
+Each project links directly to its relevant campus HTML exhibit through a validated URL fragment. Changes between exhibit fragments are handled without requiring a reload. Return to game skips the opening and restores the last saved safe position alongside existing passport, owl and preference progress. Position is game state only, validated against finite coordinates and collision bounds. With storage unavailable, the existing session-only storage limitation still applies across page navigation/reload.
+
+No résumé PDF, document, or résumé-named file was found in the implementation; no download was added. No verified employment, degree, leadership or extra project facts were supplied. Experience is clearly marked as awaiting verified details, with contact information. No accomplishments or URLs were invented.
+
+Verified this update:
+- Production build (103 static pages), TypeScript and all 10 unit tests passed.
+- Browser round trip walked to an owl, opened the portfolio, and returned with position and owl count preserved.
+- All three project exhibit links opened the correct accessible dialog and closed. The initial library fragment-switch test found a missing hash-change listener; fixed and rerun successfully.
+- WebGL-disabled test opened the library HTML exhibit and followed View Portfolio successfully.
+- Inspected 1280×720 project cards and 390×844 portfolio/game header. Fixed a phone heading wrap that overlapped discovery controls.
+- Keyboard Tab focused the visible skip link with a solid focus outline. Checked the portfolio title and description in the DOM. Exported HTML contains project, experience and contact text independently of WebGL or client rendering.
+- No console errors in the inspected portfolio session. This was not a full screen-reader audit or a repeat of all mini-game tests.
+- Evidence: `release/portfolio-fast-results.txt`, `release/screenshots/portfolio-fast-desktop.png`, `release/screenshots/portfolio-fast-phone.png`.
+
+Essential path: opening → View Portfolio (introduction and email), then Projects or Experience (two interactions total). Direct exhibit links are available in the project cards. Preview: `PORT=3025 npm run preview` after `npm run build`; `http://127.0.0.1:3025/portfolio` or `/campus`. Existing campus sources/asset credits are unchanged. No deployment.

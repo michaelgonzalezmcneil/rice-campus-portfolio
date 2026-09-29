@@ -1,0 +1,9 @@
+Ready. Tests drive the exported app using DOM events; no position teleporting.
+Reached 8,21: 8.05,20.68
+PASS HTML projects, experience and contact
+PASS return restores position and owl progress
+PASS direct exhibit engineering
+PASS direct exhibit library
+PASS direct exhibit yardos
+PASS unavailable WebGL: direct HTML exhibit and portfolio
+PASS test finished
